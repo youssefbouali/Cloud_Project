@@ -1,0 +1,12 @@
+{
+  "name": "fittrack",
+  "version": "1.0.0",
+  "description": "FitTrack minimal dev server",
+  "main": "server.js",
+  "scripts": {
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2"
+  }
+}
