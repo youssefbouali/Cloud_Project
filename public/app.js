@@ -1,6 +1,6 @@
-import React, { useState, useEffect, createContext, useContext } from 'https://unpkg.com/react@18/umd/react.development.js'
-import ReactDOM from 'https://unpkg.com/react-dom@18/umd/react-dom.development.js'
-
+// Using UMD React and ReactDOM loaded via script tags in index.html
+const { useState, useEffect, createContext, useContext } = React
+const ReactDOM = window.ReactDOM
 const { createRoot } = ReactDOM
 
 // Router supporting both pathname and hash. Uses history API for navigation.
@@ -26,9 +26,13 @@ function useRouter(){
     if(path.startsWith('#')){
       window.location.hash = path.slice(1)
       setRoute(path.slice(1) || '/')
+      // notify other router instances
+      window.dispatchEvent(new Event('popstate'))
       return
     }
     try{ window.history.pushState({}, '', path) }catch(e){ window.location.hash = path }
+    // notify other router instances to update
+    window.dispatchEvent(new Event('popstate'))
     setRoute(path)
   }
 

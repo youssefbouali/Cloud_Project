@@ -1,10 +1,10 @@
-import { useData } from '../context/DataContext'
-import ActivityForm from '../components/ActivityForm'
-import ActivityList from '../components/ActivityList'
-import Link from 'next/link'
+import Link from 'next/link';
+import { useData } from '../context/DataContext';
+import ActivityForm from '../components/ActivityForm';
+import ActivityList from '../components/ActivityList';
 
-export default function Dashboard(){
-  const { user, logout } = useData()
+export default function Dashboard() {
+  const { user, logout } = useData();
 
   return (
     <main className="page-root">
@@ -15,8 +15,12 @@ export default function Dashboard(){
         </div>
         <div className="user-actions">
           <span className="user-email">{user?.email || 'Guest'}</span>
-          <button className="btn-ghost" onClick={logout}>Logout</button>
-          <Link className="back-link" href="/">Home</Link>
+          <button className="btn-ghost" onClick={logout}>
+            Logout
+          </button>
+          <Link className="back-link" href="/">
+            Home
+          </Link>
         </div>
       </header>
 
@@ -32,5 +36,5 @@ export default function Dashboard(){
         </div>
       </section>
     </main>
-  )
+  );
 }
