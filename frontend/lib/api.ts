@@ -49,6 +49,8 @@ async function apiCall(endpoint: string, options: RequestOptions = {}) {
 }
 
 export const api = {
+  apiCall,
+
   // Auth endpoints
   signup: (email: string, password: string) =>
     apiCall('/api/auth/signup', {

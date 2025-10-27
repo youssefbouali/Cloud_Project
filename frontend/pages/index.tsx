@@ -1,6 +1,9 @@
 import Link from 'next/link';
+import { useData } from '../context/DataContext';
 
 export default function Home() {
+  const { user } = useData();
+
   return (
     <main className="page-root">
       <header className="brand-header">
@@ -10,12 +13,23 @@ export default function Home() {
 
       <section className="hero-card">
         <p className="hero-text">
-          Lightweight prototype with in-browser temporary storage (DataContext +
-          localStorage).
+          Lightweight prototype with backend storage (NestJS + PostgreSQL).
         </p>
-        <Link className="primary-cta" href="/dashboard">
-          Open Dashboard
-        </Link>
+        
+        {user ? (
+          <Link className="primary-cta" href="/dashboard">
+            Open Dashboard
+          </Link>
+        ) : (
+          <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}>
+            <Link className="primary-cta" href="/login">
+              Login
+            </Link>
+            <Link className="primary-cta" href="/register" style={{ background: '#6b7280' }}>
+              Sign Up
+            </Link>
+          </div>
+        )}
       </section>
 
       <footer className="site-footer">© FitTrack</footer>
