@@ -1,8 +1,13 @@
 import { useState } from 'react';
-import { useData } from '../context/DataContext';
+import { useAppDispatch, useAppSelector } from '../store/hooks';
+import { deleteActivity } from '../store/slices/activitiesSlice';
 
 export default function ActivityList() {
-  const { activities, deleteActivity, user, loading } = useData();
+  const dispatch = useAppDispatch();
+  const { user } = useAppSelector((state) => state.auth);
+  const { items: activities, loading, error } = useAppSelector(
+    (state) => state.activities,
+  );
   const [localError, setLocalError] = useState<string>('');
   const [deleting, setDeleting] = useState<string | null>(null);
 
@@ -11,9 +16,11 @@ export default function ActivityList() {
     setDeleting(id);
 
     try {
-      await deleteActivity(id);
+      await dispatch(deleteActivity(id));
     } catch (err) {
-      setLocalError(err instanceof Error ? err.message : 'Failed to delete activity');
+      setLocalError(
+        err instanceof Error ? err.message : 'Failed to delete activity',
+      );
     } finally {
       setDeleting(null);
     }
@@ -29,7 +36,9 @@ export default function ActivityList() {
 
   return (
     <>
-      {localError && <div className="error-message">{localError}</div>}
+      {(localError || error) && (
+        <div className="error-message">{localError || error}</div>
+      )}
       <ul className="activity-list">
         {activities.map((act) => (
           <li key={act.id} className="activity-item">
@@ -51,12 +60,15 @@ export default function ActivityList() {
               </div>
             </div>
 
-            {act.photo && (
+            {act.photoUrl && (
               <img
                 className="activity-photo"
-                src={act.photo}
+                src={act.photoUrl}
                 alt="activity"
               />
+            )}
+            {act.photo && (
+              <img className="activity-photo" src={act.photo} alt="activity" />
             )}
           </li>
         ))}

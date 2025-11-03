@@ -1,4 +1,7 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+import { awsConfig } from '../config/aws';
+import { AuthService } from '../services/authService';
+
+const API_URL = awsConfig.apiEndpoint;
 
 interface RequestOptions {
   method?: 'GET' | 'POST' | 'PUT' | 'DELETE';
@@ -6,32 +9,31 @@ interface RequestOptions {
   body?: any;
 }
 
-function getAuthToken(): string | null {
-  if (typeof window === 'undefined') return null;
-  return localStorage.getItem('auth_token');
-}
+async function getAuthHeader(): Promise<Record<string, string>> {
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+  };
 
-function setAuthToken(token: string): void {
-  if (typeof window === 'undefined') return;
-  localStorage.setItem('auth_token', token);
-}
+  try {
+    const token = await AuthService.getAccessToken();
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+  } catch (error) {
+    console.error('Failed to get auth token:', error);
+  }
 
-function clearAuthToken(): void {
-  if (typeof window === 'undefined') return;
-  localStorage.removeItem('auth_token');
+  return headers;
 }
 
 async function apiCall(endpoint: string, options: RequestOptions = {}) {
   const url = `${API_URL}${endpoint}`;
+  const authHeaders = await getAuthHeader();
+
   const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
+    ...authHeaders,
     ...options.headers,
   };
-
-  const token = getAuthToken();
-  if (token) {
-    headers['Authorization'] = `Bearer ${token}`;
-  }
 
   const response = await fetch(url, {
     method: options.method || 'GET',
@@ -42,7 +44,7 @@ async function apiCall(endpoint: string, options: RequestOptions = {}) {
   const data = await response.json();
 
   if (!response.ok) {
-    throw new Error(data.message || 'API request failed');
+    throw new Error(data.message || `API error: ${response.status}`);
   }
 
   return data;
@@ -50,19 +52,6 @@ async function apiCall(endpoint: string, options: RequestOptions = {}) {
 
 export const api = {
   apiCall,
-
-  // Auth endpoints
-  signup: (email: string, password: string) =>
-    apiCall('/api/auth/signup', {
-      method: 'POST',
-      body: { email, password },
-    }),
-
-  login: (email: string, password: string) =>
-    apiCall('/api/auth/login', {
-      method: 'POST',
-      body: { email, password },
-    }),
 
   // Activities endpoints
   getActivities: () => apiCall('/api/activities'),
@@ -78,6 +67,12 @@ export const api = {
 
   getActivity: (id: string) => apiCall(`/api/activities/${id}`),
 
+  updateActivity: (id: string, activity: any) =>
+    apiCall(`/api/activities/${id}`, {
+      method: 'PUT',
+      body: activity,
+    }),
+
   deleteActivity: (id: string) =>
     apiCall(`/api/activities/${id}`, {
       method: 'DELETE',
@@ -85,9 +80,4 @@ export const api = {
 
   // Health check
   health: () => apiCall('/api/health'),
-
-  // Token management
-  getToken: () => getAuthToken(),
-  setToken: setAuthToken,
-  clearToken: clearAuthToken,
 };

@@ -29,6 +29,8 @@
     "@nestjs/passport": "^10.0.3",
     "@nestjs/platform-express": "^10.2.10",
     "@prisma/client": "^5.7.1",
+    "aws-sdk": "^2.1500.0",
+    "jwks-rsa": "^3.0.1",
     "passport": "^0.7.0",
     "passport-jwt": "^4.0.1",
     "reflect-metadata": "^0.1.13",

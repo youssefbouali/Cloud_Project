@@ -17,7 +17,7 @@ export class ActivitiesController {
   constructor(private activitiesService: ActivitiesService) {}
 
   @Post()
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(AuthGuard('cognito'))
   async createActivity(@Request() req, @Body() body: any) {
     try {
       const activity = await this.activitiesService.createActivity({
@@ -25,7 +25,7 @@ export class ActivitiesController {
         date: body.date,
         duration: body.duration,
         distance: body.distance || 0,
-        photo: body.photo,
+        photo: body.photo || body.photoUrl,
         ownerId: req.user.id,
       });
       return activity;
@@ -50,7 +50,7 @@ export class ActivitiesController {
   }
 
   @Delete(':id')
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(AuthGuard('cognito'))
   async deleteActivity(@Param('id') id: string, @Request() req) {
     const activity = await this.activitiesService.getActivityById(id);
     if (!activity || activity.ownerId !== req.user.id) {

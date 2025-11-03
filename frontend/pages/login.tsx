@@ -1,12 +1,15 @@
 import { useState } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
-import { useData } from '../context/DataContext';
+import { useAppDispatch, useAppSelector } from '../store/hooks';
+import { signin } from '../store/slices/authSlice';
 
 export default function Login() {
   const router = useRouter();
-  const { login, loading, error } = useData();
-  const [email, setEmail] = useState<string>('');
+  const dispatch = useAppDispatch();
+  const { loading, error, user } = useAppSelector((state) => state.auth);
+
+  const [username, setUsername] = useState<string>('');
   const [password, setPassword] = useState<string>('');
   const [localError, setLocalError] = useState<string>('');
 
@@ -14,16 +17,17 @@ export default function Login() {
     e.preventDefault();
     setLocalError('');
 
-    if (!email || !password) {
-      setLocalError('Please enter both email and password');
+    if (!username || !password) {
+      setLocalError('Please enter both username and password');
       return;
     }
 
-    try {
-      await login({ email, password });
+    const result = await dispatch(
+      signin({ username: username.toLowerCase(), password }),
+    );
+
+    if (result.payload && !(result.payload instanceof Error)) {
       router.push('/dashboard');
-    } catch (err) {
-      setLocalError(err instanceof Error ? err.message : 'Login failed');
     }
   };
 
@@ -34,7 +38,7 @@ export default function Login() {
         <p className="brand-subtitle">Track workouts, meals and progress.</p>
       </header>
 
-      <section className="hero-card">
+      <section className="hero-card" style={{ maxWidth: '500px' }}>
         <h2 style={{ margin: '0 0 16px' }}>Login</h2>
         <p className="hero-text" style={{ margin: '0 0 16px' }}>
           Enter your credentials to access your dashboard.
@@ -44,14 +48,14 @@ export default function Login() {
           <div className="error-message">{localError || error}</div>
         )}
 
-        <form onSubmit={handleSubmit} className="form" style={{ maxWidth: '100%' }}>
+        <form onSubmit={handleSubmit} className="form">
           <label className="label">
-            Email
+            Username or Email
             <input
               className="input"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              type="text"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
               disabled={loading}
               required
             />
@@ -73,7 +77,7 @@ export default function Login() {
             className="btn-primary"
             type="submit"
             disabled={loading}
-            style={{ width: '100%', marginTop: '8px' }}
+            style={{ width: '100%' }}
           >
             {loading ? 'Logging in...' : 'Login'}
           </button>

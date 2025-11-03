@@ -1,8 +1,8 @@
 import Link from 'next/link';
-import { useData } from '../context/DataContext';
+import { useAppSelector } from '../store/hooks';
 
 export default function Home() {
-  const { user } = useData();
+  const { user, isAuthenticated } = useAppSelector((state) => state.auth);
 
   return (
     <main className="page-root">
@@ -13,10 +13,10 @@ export default function Home() {
 
       <section className="hero-card">
         <p className="hero-text">
-          Lightweight prototype with backend storage (NestJS + PostgreSQL).
+          Lightweight prototype with AWS backend infrastructure (NestJS + PostgreSQL + RDS).
         </p>
-        
-        {user ? (
+
+        {isAuthenticated && user ? (
           <Link className="primary-cta" href="/dashboard">
             Open Dashboard
           </Link>

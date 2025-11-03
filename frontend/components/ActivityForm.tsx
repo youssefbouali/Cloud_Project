@@ -1,21 +1,36 @@
 import { useState, ChangeEvent, FormEvent } from 'react';
-import { useData } from '../context/DataContext';
+import { useAppDispatch, useAppSelector } from '../store/hooks';
+import { createActivity } from '../store/slices/activitiesSlice';
+import { S3Service } from '../services/s3Service';
 
 export default function ActivityForm() {
-  const { addActivity, user, loading, error } = useData();
+  const dispatch = useAppDispatch();
+  const { user } = useAppSelector((state) => state.auth);
+  const { loading: activitiesLoading } = useAppSelector((state) => state.activities);
+
   const [type, setType] = useState<string>('Course');
   const [date, setDate] = useState<string>('');
   const [duration, setDuration] = useState<string>('');
   const [distance, setDistance] = useState<string>('');
-  const [photo, setPhoto] = useState<string | null>(null);
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string>('');
   const [localError, setLocalError] = useState<string>('');
+  const [uploading, setUploading] = useState<boolean>(false);
 
   const handleFile = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      setLocalError('Please select an image file');
+      return;
+    }
+
+    setPhotoFile(file);
+
     const reader = new FileReader();
     reader.onload = () => {
-      setPhoto(reader.result as string);
+      setPreviewUrl(reader.result as string);
     };
     reader.readAsDataURL(file);
   };
@@ -30,35 +45,53 @@ export default function ActivityForm() {
     }
 
     if (!user) {
-      setLocalError('Please sign up or login first');
+      setLocalError('Please log in first');
       return;
     }
 
     try {
-      await addActivity({
-        type,
-        date,
-        duration: Number(duration),
-        distance: distance ? Number(distance) : 0,
-        photo,
-      });
+      setUploading(true);
+      let photoUrl: string | undefined;
+
+      if (photoFile) {
+        const fileName = S3Service.generateFileName(
+          user.id,
+          photoFile.name.split('.').pop() || 'jpg',
+        );
+        const result = await S3Service.uploadFile(photoFile, fileName);
+        photoUrl = result.url;
+      }
+
+      await dispatch(
+        createActivity({
+          type,
+          date,
+          duration: Number(duration),
+          distance: distance ? Number(distance) : 0,
+          photoUrl,
+        }),
+      );
+
       setType('Course');
       setDate('');
       setDuration('');
       setDistance('');
-      setPhoto(null);
+      setPhotoFile(null);
+      setPreviewUrl('');
     } catch (err) {
-      setLocalError(err instanceof Error ? err.message : 'Failed to add activity');
+      setLocalError(
+        err instanceof Error ? err.message : 'Failed to create activity',
+      );
+    } finally {
+      setUploading(false);
     }
   };
 
+  const isLoading = activitiesLoading || uploading;
+
   return (
     <form className="form" onSubmit={handleSubmit}>
-      {(localError || error) && (
-        <div className="error-message">
-          {localError || error}
-        </div>
-      )}
+      {localError && <div className="error-message">{localError}</div>}
 
       <label className="label">
         Type
@@ -66,7 +99,7 @@ export default function ActivityForm() {
           className="select"
           value={type}
           onChange={(e) => setType(e.target.value)}
-          disabled={loading}
+          disabled={isLoading}
         >
           <option>Course</option>
           <option>Marche</option>
@@ -83,7 +116,7 @@ export default function ActivityForm() {
           type="date"
           value={date}
           onChange={(e) => setDate(e.target.value)}
-          disabled={loading}
+          disabled={isLoading}
           required
         />
       </label>
@@ -96,7 +129,7 @@ export default function ActivityForm() {
           min="0"
           value={duration}
           onChange={(e) => setDuration(e.target.value)}
-          disabled={loading}
+          disabled={isLoading}
           required
         />
       </label>
@@ -110,7 +143,7 @@ export default function ActivityForm() {
           min="0"
           value={distance}
           onChange={(e) => setDistance(e.target.value)}
-          disabled={loading}
+          disabled={isLoading}
         />
       </label>
 
@@ -121,17 +154,23 @@ export default function ActivityForm() {
           type="file"
           accept="image/*"
           onChange={handleFile}
-          disabled={loading}
+          disabled={isLoading}
         />
       </label>
 
+      {previewUrl && (
+        <div style={{ marginBottom: '12px' }}>
+          <img
+            src={previewUrl}
+            alt="preview"
+            style={{ maxWidth: '100%', maxHeight: '200px', borderRadius: '8px' }}
+          />
+        </div>
+      )}
+
       <div className="form-actions">
-        <button
-          className="btn-primary"
-          type="submit"
-          disabled={loading}
-        >
-          {loading ? 'Adding...' : 'Add'}
+        <button className="btn-primary" type="submit" disabled={isLoading}>
+          {uploading ? 'Uploading...' : isLoading ? 'Adding...' : 'Add'}
         </button>
       </div>
     </form>
