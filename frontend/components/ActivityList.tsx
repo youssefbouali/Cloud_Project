@@ -1,42 +1,66 @@
+import { useState } from 'react';
 import { useData } from '../context/DataContext';
 
 export default function ActivityList() {
-  const { activities, deleteActivity } = useData();
+  const { activities, deleteActivity, user, loading } = useData();
+  const [localError, setLocalError] = useState<string>('');
+  const [deleting, setDeleting] = useState<string | null>(null);
+
+  const handleDelete = async (id: string) => {
+    setLocalError('');
+    setDeleting(id);
+
+    try {
+      await deleteActivity(id);
+    } catch (err) {
+      setLocalError(err instanceof Error ? err.message : 'Failed to delete activity');
+    } finally {
+      setDeleting(null);
+    }
+  };
+
+  if (!user) {
+    return <p className="muted">Please sign in to view activities.</p>;
+  }
 
   if (!activities || activities.length === 0) {
     return <p className="muted">No activities yet.</p>;
   }
 
   return (
-    <ul className="activity-list">
-      {activities.map((act) => (
-        <li key={act.id} className="activity-item">
-          <div className="activity-main">
-            <div>
-              <div className="activity-type">{act.type}</div>
-              <div className="activity-meta">
-                {act.date} • {act.duration} min • {act.distance} km
+    <>
+      {localError && <div className="error-message">{localError}</div>}
+      <ul className="activity-list">
+        {activities.map((act) => (
+          <li key={act.id} className="activity-item">
+            <div className="activity-main">
+              <div>
+                <div className="activity-type">{act.type}</div>
+                <div className="activity-meta">
+                  {act.date} • {act.duration} min • {act.distance} km
+                </div>
+              </div>
+              <div className="activity-actions">
+                <button
+                  className="btn-ghost"
+                  onClick={() => handleDelete(act.id)}
+                  disabled={loading || deleting === act.id}
+                >
+                  {deleting === act.id ? 'Deleting...' : 'Delete'}
+                </button>
               </div>
             </div>
-            <div className="activity-actions">
-              <button
-                className="btn-ghost"
-                onClick={() => deleteActivity(act.id)}
-              >
-                Delete
-              </button>
-            </div>
-          </div>
 
-          {act.photo && (
-            <img
-              className="activity-photo"
-              src={act.photo}
-              alt="activity"
-            />
-          )}
-        </li>
-      ))}
-    </ul>
+            {act.photo && (
+              <img
+                className="activity-photo"
+                src={act.photo}
+                alt="activity"
+              />
+            )}
+          </li>
+        ))}
+      </ul>
+    </>
   );
 }

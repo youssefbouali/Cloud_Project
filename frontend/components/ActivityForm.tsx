@@ -2,12 +2,13 @@ import { useState, ChangeEvent, FormEvent } from 'react';
 import { useData } from '../context/DataContext';
 
 export default function ActivityForm() {
-  const { addActivity, user } = useData();
+  const { addActivity, user, loading, error } = useData();
   const [type, setType] = useState<string>('Course');
   const [date, setDate] = useState<string>('');
   const [duration, setDuration] = useState<string>('');
   const [distance, setDistance] = useState<string>('');
   const [photo, setPhoto] = useState<string | null>(null);
+  const [localError, setLocalError] = useState<string>('');
 
   const handleFile = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -19,33 +20,53 @@ export default function ActivityForm() {
     reader.readAsDataURL(file);
   };
 
-  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!date || !duration) return;
-    const activity = {
-      type,
-      date,
-      duration: Number(duration),
-      distance: distance ? Number(distance) : 0,
-      photo,
-      owner: user?.id || null,
-    };
-    addActivity(activity);
-    setType('Course');
-    setDate('');
-    setDuration('');
-    setDistance('');
-    setPhoto(null);
+    setLocalError('');
+
+    if (!date || !duration) {
+      setLocalError('Date and duration are required');
+      return;
+    }
+
+    if (!user) {
+      setLocalError('Please sign up or login first');
+      return;
+    }
+
+    try {
+      await addActivity({
+        type,
+        date,
+        duration: Number(duration),
+        distance: distance ? Number(distance) : 0,
+        photo,
+      });
+      setType('Course');
+      setDate('');
+      setDuration('');
+      setDistance('');
+      setPhoto(null);
+    } catch (err) {
+      setLocalError(err instanceof Error ? err.message : 'Failed to add activity');
+    }
   };
 
   return (
     <form className="form" onSubmit={handleSubmit}>
+      {(localError || error) && (
+        <div className="error-message">
+          {localError || error}
+        </div>
+      )}
+
       <label className="label">
         Type
         <select
           className="select"
           value={type}
           onChange={(e) => setType(e.target.value)}
+          disabled={loading}
         >
           <option>Course</option>
           <option>Marche</option>
@@ -62,6 +83,7 @@ export default function ActivityForm() {
           type="date"
           value={date}
           onChange={(e) => setDate(e.target.value)}
+          disabled={loading}
           required
         />
       </label>
@@ -74,6 +96,7 @@ export default function ActivityForm() {
           min="0"
           value={duration}
           onChange={(e) => setDuration(e.target.value)}
+          disabled={loading}
           required
         />
       </label>
@@ -87,6 +110,7 @@ export default function ActivityForm() {
           min="0"
           value={distance}
           onChange={(e) => setDistance(e.target.value)}
+          disabled={loading}
         />
       </label>
 
@@ -97,12 +121,17 @@ export default function ActivityForm() {
           type="file"
           accept="image/*"
           onChange={handleFile}
+          disabled={loading}
         />
       </label>
 
       <div className="form-actions">
-        <button className="btn-primary" type="submit">
-          Add
+        <button
+          className="btn-primary"
+          type="submit"
+          disabled={loading}
+        >
+          {loading ? 'Adding...' : 'Add'}
         </button>
       </div>
     </form>

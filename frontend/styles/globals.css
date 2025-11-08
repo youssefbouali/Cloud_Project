@@ -27,9 +27,13 @@ body{margin:0;font-family:Inter,system-ui,-apple-system,'Segoe UI',Roboto,Arial;
 .form{display:flex;flex-direction:column;gap:8px}
 .label{display:flex;flex-direction:column;font-size:14px}
 .input,.select{padding:8px;border-radius:8px;border:1px solid #e6edf8}
+.input:disabled,.select:disabled{background-color:#f9fafb;cursor:not-allowed;opacity:0.6}
 .form-actions{display:flex;justify-content:flex-end}
-.btn-primary{background:var(--accent);color:#fff;padding:8px 12px;border-radius:8px;border:none}
+.btn-primary{background:var(--accent);color:#fff;padding:8px 12px;border-radius:8px;border:none;cursor:pointer}
+.btn-primary:disabled{opacity:0.6;cursor:not-allowed}
 .muted{color:var(--muted)}
+
+.error-message{background-color:#fee2e2;border:1px solid #fecaca;color:#991b1b;padding:8px 12px;border-radius:6px;margin-bottom:12px;font-size:14px}
 
 .activity-list{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:12px}
 .activity-item{border-radius:8px;padding:8px;border:1px solid #f1f5f9;display:flex;flex-direction:column}
