@@ -55,29 +55,28 @@ export const api = {
 
   // Activities endpoints
   getActivities: () => apiCall('/api/activities'),
-
   getUserActivities: (userId: string) =>
     apiCall(`/api/activities/user/${userId}`),
-
   createActivity: (activity: any) =>
-    apiCall('/api/activities', {
-      method: 'POST',
-      body: activity,
-    }),
-
+    apiCall('/api/activities', { method: 'POST', body: activity }),
   getActivity: (id: string) => apiCall(`/api/activities/${id}`),
-
   updateActivity: (id: string, activity: any) =>
-    apiCall(`/api/activities/${id}`, {
-      method: 'PUT',
-      body: activity,
-    }),
-
+    apiCall(`/api/activities/${id}`, { method: 'PUT', body: activity }),
   deleteActivity: (id: string) =>
-    apiCall(`/api/activities/${id}`, {
-      method: 'DELETE',
-    }),
+    apiCall(`/api/activities/${id}`, { method: 'DELETE' }),
+
+  // Authentication endpoints
+  signup: (email: string, password: string) =>
+    apiCall('/api/auth/signup', { method: 'POST', body: { email, password } }),
+  login: (email: string, password: string) =>
+    apiCall('/api/auth/login', { method: 'POST', body: { email, password } }),
+
+  // Token handling
+  getToken: () => localStorage.getItem('token'),
+  setToken: (token: string) => localStorage.setItem('token', token),
+  clearToken: () => localStorage.removeItem('token'),
 
   // Health check
   health: () => apiCall('/api/health'),
 };
+

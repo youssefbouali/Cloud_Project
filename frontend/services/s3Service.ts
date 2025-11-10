@@ -1,50 +1,54 @@
-import { Storage } from 'aws-amplify';
+// services/s3Service.ts
+import { getUrl, uploadData, remove } from 'aws-amplify/storage';
 
 export const S3Service = {
-  async uploadFile(
-    file: File,
-    fileName: string,
-  ): Promise<{ key: string; url: string }> {
+  async uploadFile(file: File, fileName: string): Promise<{ key: string; url: string }> {
     try {
-      const result = await Storage.put(fileName, file, {
-        contentType: file.type,
-        level: 'public',
+      // Upload the file
+      await uploadData({
+        key: fileName,
+        data: file,
+        options: {
+          contentType: file.type,
+          accessLevel: 'guest', // equivalent to 'public' in Gen 1
+        },
+      }).result;
+
+      // Get the public URL
+      const { url } = await getUrl({
+        key: fileName,
+        options: { accessLevel: 'guest' },
       });
 
       return {
-        key: result.key,
-        url: await this.getFileUrl(result.key),
+        key: fileName,
+        url: url.toString(),
       };
     } catch (error) {
-      throw new Error(
-        error instanceof Error ? error.message : 'File upload failed',
-      );
+      console.error('Error uploading file:', error);
+      throw error;
     }
   },
 
   async getFileUrl(key: string): Promise<string> {
     try {
-      const url = await Storage.get(key, {
-        level: 'public',
-        expires: 3600, // 1 hour expiration
+      const { url } = await getUrl({
+        key,
+        options: { accessLevel: 'guest' },
       });
-      return url as string;
+      return url.toString();
     } catch (error) {
-      throw new Error(
-        error instanceof Error ? error.message : 'Failed to get file URL',
-      );
+      console.error('Error getting file URL:', error);
+      throw error;
     }
   },
 
   async deleteFile(key: string): Promise<void> {
     try {
-      await Storage.remove(key, {
-        level: 'public',
-      });
+      await remove({ key, options: { accessLevel: 'guest' } });
     } catch (error) {
-      throw new Error(
-        error instanceof Error ? error.message : 'File deletion failed',
-      );
+      console.error('Error deleting file:', error);
+      throw error;
     }
   },
 

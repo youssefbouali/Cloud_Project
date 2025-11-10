@@ -8,7 +8,6 @@
     "backend"
   ],
   "scripts": {
-    "install": "npm install && npm --prefix frontend install && npm --prefix backend install",
     "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
     "dev:backend": "npm --prefix backend run dev",
     "dev:frontend": "npm --prefix frontend run dev",
