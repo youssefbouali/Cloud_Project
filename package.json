@@ -10,7 +10,7 @@
   "scripts": {
     "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
     "dev:backend": "npm --prefix backend run dev",
-    "dev:frontend": "npm --prefix frontend run dev",
+    "dev:frontend": "cd frontend && next dev",
     "build": "npm --prefix backend run build && npm --prefix frontend run build",
     "build:backend": "npm --prefix backend run build",
     "build:frontend": "npm --prefix frontend run build",

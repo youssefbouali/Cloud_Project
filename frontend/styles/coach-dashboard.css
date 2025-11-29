@@ -1,0 +1,669 @@
+.coach-dashboard-layout {
+  display: flex;
+  min-height: 100vh;
+  background: #F9FAFB;
+}
+
+.coach-sidebar {
+  width: 256px;
+  background: linear-gradient(45deg, #10B981 50%, #059669 120.71%);
+  position: fixed;
+  height: 100vh;
+  left: 0;
+  top: 0;
+  z-index: 100;
+}
+
+.coach-sidebar-content {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.coach-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.coach-brand-icon {
+  width: 40px;
+  height: 40px;
+  background: #FFF;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.coach-brand-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.coach-brand-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: #FFF;
+  margin: 0;
+  line-height: 1.4;
+}
+
+.coach-brand-subtitle {
+  font-size: 14px;
+  font-weight: 400;
+  color: #DCFCE7;
+  margin: 0;
+  line-height: 1.4;
+}
+
+.coach-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.coach-nav-link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: 8px;
+  text-decoration: none;
+  color: #DCFCE7;
+  font-size: 16px;
+  font-weight: 400;
+  transition: background 0.2s;
+  line-height: 1.5;
+}
+
+.coach-nav-link:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.coach-nav-link.active {
+  background: rgba(255, 255, 255, 0.2);
+  color: #FFF;
+  font-weight: 500;
+}
+
+.coach-nav-link svg {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
+.coach-main-wrapper {
+  margin-left: 256px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.coach-header {
+  background: #FFF;
+  border-bottom: 1px solid #E5E7EB;
+  padding: 16px 32px 17px;
+}
+
+.coach-header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 32px;
+}
+
+.coach-header-title-section {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.coach-header-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: #111827;
+  margin: 0;
+  line-height: 1.33;
+}
+
+.coach-header-subtitle {
+  font-size: 16px;
+  font-weight: 400;
+  color: #4B5563;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.coach-header-user {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.notification-button {
+  width: 34px;
+  height: 44px;
+  padding: 10px 8px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.2s;
+}
+
+.notification-button:hover {
+  opacity: 0.7;
+}
+
+.user-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.user-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.user-name {
+  font-size: 16px;
+  font-weight: 600;
+  color: #111827;
+  line-height: 1.5;
+}
+
+.user-role {
+  font-size: 14px;
+  font-weight: 400;
+  color: #4B5563;
+  line-height: 1.43;
+}
+
+.coach-content {
+  padding: 32px;
+  flex: 1;
+}
+
+.metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 24px;
+  margin-bottom: 32px;
+}
+
+.metric-card {
+  background: #FFF;
+  border: 1px solid #E5E7EB;
+  border-radius: 12px;
+  padding: 25px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.metric-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+
+.metric-info {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.metric-label {
+  font-size: 14px;
+  font-weight: 500;
+  color: #4B5563;
+  line-height: 1.43;
+}
+
+.metric-value {
+  font-size: 30px;
+  font-weight: 700;
+  color: #111827;
+  line-height: 1.2;
+}
+
+.metric-change {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.43;
+}
+
+.metric-change svg {
+  width: 11px;
+  height: 14px;
+}
+
+.metric-change.positive {
+  color: #10B981;
+}
+
+.metric-change.pending {
+  color: #EA580C;
+}
+
+.metric-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.metric-icon.clients {
+  background: rgba(16, 185, 129, 0.1);
+}
+
+.metric-icon.activities {
+  background: #DBEAFE;
+}
+
+.metric-icon.recommendations {
+  background: #FFEDD5;
+}
+
+.metric-icon.progress {
+  background: #F3E8FF;
+}
+
+.charts-section {
+  display: grid;
+  grid-template-columns: 1fr 352px;
+  gap: 32px;
+  margin-bottom: 32px;
+}
+
+.chart-card {
+  background: #FFF;
+  border: 1px solid #E5E7EB;
+  border-radius: 12px;
+  padding: 25px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.chart-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #111827;
+  margin: 0 0 16px;
+  line-height: 1.56;
+}
+
+.chart-placeholder {
+  height: 300px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: #F9FAFB;
+  border-radius: 8px;
+  position: relative;
+}
+
+.chart-legend {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: #FFF;
+  padding: 12px 16px;
+  border-radius: 8px;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 12px;
+  color: #444;
+}
+
+.legend-line {
+  width: 30px;
+  height: 3px;
+  border-radius: 2px;
+}
+
+.legend-line.this-week {
+  background: #10B981;
+}
+
+.legend-line.last-week {
+  background: #6B7280;
+  height: 2px;
+}
+
+.chart-info {
+  color: #6B7280;
+  font-size: 14px;
+}
+
+.pie-legend {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.legend-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 2px;
+  display: inline-block;
+  margin-right: 8px;
+}
+
+.legend-dot.cardio {
+  background: #10B981;
+}
+
+.legend-dot.strength {
+  background: #3B82F6;
+}
+
+.legend-dot.yoga {
+  background: #8B5CF6;
+}
+
+.legend-dot.sports {
+  background: #F59E0B;
+}
+
+.legend-dot.other {
+  background: #6B7280;
+}
+
+.activities-section {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 32px;
+}
+
+.activity-card,
+.recommendations-card {
+  background: #FFF;
+  border: 1px solid #E5E7EB;
+  border-radius: 12px;
+  padding: 25px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.activity-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.activity-card-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #111827;
+  margin: 0;
+  line-height: 1.56;
+}
+
+.view-all-link {
+  font-size: 14px;
+  font-weight: 500;
+  color: #10B981;
+  text-decoration: none;
+  line-height: 1.43;
+}
+
+.view-all-link:hover {
+  text-decoration: underline;
+}
+
+.client-activities {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.client-activity {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+  background: #F9FAFB;
+  border-radius: 8px;
+}
+
+.activity-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.activity-details {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.activity-client-name {
+  font-size: 16px;
+  font-weight: 600;
+  color: #111827;
+  line-height: 1.5;
+}
+
+.activity-description {
+  font-size: 14px;
+  font-weight: 400;
+  color: #4B5563;
+  line-height: 1.43;
+}
+
+.activity-time {
+  font-size: 12px;
+  font-weight: 400;
+  color: #6B7280;
+  line-height: 1.33;
+}
+
+.activity-badge {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.activity-badge svg {
+  width: 16px;
+  height: 18px;
+}
+
+.recommendations-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.recommendations-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #111827;
+  margin: 0;
+  line-height: 1.56;
+}
+
+.new-button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 16px 7px;
+  background: #10B981;
+  color: #FFF;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.new-button:hover {
+  background: #059669;
+}
+
+.new-button svg {
+  width: 12px;
+  height: 14px;
+}
+
+.recommendations-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.recommendation-item {
+  border: 1px solid #E5E7EB;
+  border-radius: 8px;
+  padding: 17px;
+}
+
+.recommendation-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.recommendation-title-text {
+  font-size: 16px;
+  font-weight: 600;
+  color: #111827;
+  line-height: 1.5;
+}
+
+.status-badge {
+  padding: 4px 12px;
+  border-radius: 9999px;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 1.33;
+}
+
+.status-badge.pending {
+  background: #FFEDD5;
+  color: #9A3412;
+}
+
+.recommendation-for {
+  font-size: 14px;
+  font-weight: 400;
+  color: #4B5563;
+  margin-bottom: 8px;
+  line-height: 1.43;
+}
+
+.recommendation-description {
+  font-size: 14px;
+  font-weight: 400;
+  color: #374151;
+  line-height: 1.43;
+  margin: 0 0 12px;
+}
+
+.recommendation-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.action-button {
+  padding: 4px 16px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 400;
+  cursor: pointer;
+  border: none;
+  transition: opacity 0.2s;
+}
+
+.action-button:hover {
+  opacity: 0.8;
+}
+
+.action-button.send {
+  background: #10B981;
+  color: #FFF;
+}
+
+.action-button.edit {
+  background: #E5E7EB;
+  color: #374151;
+}
+
+@media (max-width: 1440px) {
+  .metrics-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .charts-section {
+    grid-template-columns: 1fr;
+  }
+  
+  .activities-section {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .coach-sidebar {
+    display: none;
+  }
+  
+  .coach-main-wrapper {
+    margin-left: 0;
+  }
+  
+  .coach-header {
+    padding: 12px 16px;
+  }
+  
+  .coach-header-content {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+  
+  .coach-content {
+    padding: 16px;
+  }
+  
+  .metrics-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  
+  .charts-section,
+  .activities-section {
+    gap: 16px;
+  }
+}

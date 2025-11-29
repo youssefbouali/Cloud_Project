@@ -55,8 +55,8 @@ export const api = {
 
   // Activities endpoints
   getActivities: () => apiCall('/api/activities'),
-  getUserActivities: (userId: string) =>
-    apiCall(`/api/activities/user/${userId}`),
+  getUserActivities: (_userId: string) =>
+    apiCall('/api/activities/me'),
   createActivity: (activity: any) =>
     apiCall('/api/activities', { method: 'POST', body: activity }),
   getActivity: (id: string) => apiCall(`/api/activities/${id}`),

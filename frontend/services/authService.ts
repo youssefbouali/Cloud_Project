@@ -1,109 +1,220 @@
-import { Amplify } from 'aws-amplify';
-import Auth from '@aws-amplify/auth';
+import {
+  CognitoUserPool,
+  CognitoUser,
+  CognitoUserAttribute,
+} from 'amazon-cognito-identity-js';
+import {
+  CognitoIdentityProviderClient,
+  InitiateAuthCommand,
+  SignUpCommand,
+  ConfirmSignUpCommand,
+} from '@aws-sdk/client-cognito-identity-provider';
+import { awsConfig } from '../config/aws';
 import type { User } from '../store/slices/authSlice';
 
-type CognitoUser = any; 
+let userPool: CognitoUserPool;
+let cognitoClient: CognitoIdentityProviderClient;
 
-export const initializeAuth = (config: {
-  region: string;
-  userPoolId: string;
-  clientId: string;
-}) => {
-  Amplify.configure({
-    Auth: {
-      mandatorySignIn: true,
-      region: config.region,
-      userPoolId: config.userPoolId,
-      userPoolWebClientId: config.clientId,
-      identityPoolId: process.env.NEXT_PUBLIC_IDENTITY_POOL_ID,
-      authenticationFlowType: 'USER_PASSWORD_AUTH',
-    } as any,
+export const initializeCognito = () => {
+  const poolData = {
+    UserPoolId: awsConfig.userPoolId,
+    ClientId: awsConfig.clientId,
+  };
+  userPool = new CognitoUserPool(poolData);
+  
+  cognitoClient = new CognitoIdentityProviderClient({
+    region: awsConfig.region,
   });
 };
 
+const getCognitoUser = (username: string): CognitoUser | null => {
+  if (!userPool) return null;
+  return new CognitoUser({
+    Username: username,
+    Pool: userPool,
+  });
+};
+
+const getCurrentCognitoUser = (): CognitoUser | null => {
+  if (!userPool) return null;
+  return userPool.getCurrentUser();
+};
+
+const parseIdToken = (idToken: string): any => {
+  try {
+    const payload = idToken.split('.')[1];
+    const decoded = Buffer.from(payload, 'base64').toString('utf-8');
+    return JSON.parse(decoded);
+  } catch {
+    return {};
+  }
+};
+
 export const AuthService = {
-  async signup(credentials: { email: string; password: string; username?: string }): Promise<{ userId: string; userSub: string }> {
+  async signup(credentials: {
+    email: string;
+    password: string;
+    username?: string;
+  }): Promise<{ userId: string; userSub: string }> {
+    if (!cognitoClient) throw new Error('Cognito not initialized');
+
     const username = credentials.username || credentials.email;
 
-    const result: any = await Auth.signUp({
-      username,
-      password: credentials.password,
-      attributes: { email: credentials.email },
-    } as any);
+    try {
+      const response = await cognitoClient.send(
+        new SignUpCommand({
+          ClientId: awsConfig.clientId,
+          Username: username,
+          Password: credentials.password,
+          UserAttributes: [
+            {
+              Name: 'email',
+              Value: credentials.email,
+            },
+          ],
+        })
+      );
 
-    const userSub = (result.user?.username) || username;
-
-    return {
-      userId: userSub,
-      userSub: userSub,
-    };
+      return {
+        userId: response.UserSub || username,
+        userSub: response.UserSub || username,
+      };
+    } catch (error) {
+      throw error;
+    }
   },
 
-  async signin(credentials: { username: string; password: string }): Promise<{ user: User; accessToken: string; idToken: string }> {
-    const result: CognitoUser = await Auth.signIn({
-      username: credentials.username,
-      password: credentials.password,
-    } as any);
+  async signin(credentials: {
+    username: string;
+    password: string;
+  }): Promise<{ user: User; accessToken: string; idToken: string }> {
+    if (!cognitoClient) throw new Error('Cognito not initialized');
 
-    const session = result.getSignInUserSession();
+    try {
+      const response = await cognitoClient.send(
+        new InitiateAuthCommand({
+          ClientId: awsConfig.clientId,
+          AuthFlow: 'USER_PASSWORD_AUTH',
+          AuthParameters: {
+            USERNAME: credentials.username,
+            PASSWORD: credentials.password,
+          },
+        })
+      );
 
-    const user: User = {
-      id: session.idToken.payload.sub,
-      email: session.idToken.payload.email,
-      username: result.getUsername(),
-      name: session.idToken.payload.name,
-    };
+      if (!response.AuthenticationResult) {
+        throw new Error('No authentication result received');
+      }
 
-    localStorage.setItem('auth_token', session.accessToken.jwtToken);
-    localStorage.setItem('id_token', session.idToken.jwtToken);
+      const idToken = response.AuthenticationResult.IdToken || '';
+      const accessToken = response.AuthenticationResult.AccessToken || '';
+      const idTokenPayload = parseIdToken(idToken);
 
-    return { user, accessToken: session.accessToken.jwtToken, idToken: session.idToken.jwtToken };
+      const user: User = {
+        id: idTokenPayload.sub || '',
+        email: idTokenPayload.email || '',
+        username: credentials.username,
+        name: idTokenPayload.name || '',
+      };
+
+      localStorage.setItem('auth_token', accessToken);
+      localStorage.setItem('id_token', idToken);
+
+      return {
+        user,
+        accessToken,
+        idToken,
+      };
+    } catch (error) {
+      throw error;
+    }
   },
-  
-  
-  async confirmSignup(credentials: { username: string; code: string }): Promise<{ user: User; accessToken: string; idToken: string }> {
-  await Auth.confirmSignUp({
-    username: credentials.username,
-    code: credentials.code,
-  } as any);
 
-  const result: any = await Auth.signIn({
-    username: credentials.username,
-    password: credentials.code, 
-  } as any);
+  async confirmSignup(credentials: {
+    username: string;
+    code: string;
+  }): Promise<{ user: User; accessToken: string; idToken: string }> {
+    if (!cognitoClient) throw new Error('Cognito not initialized');
 
-  const session = result.getSignInUserSession();
+    try {
+      await cognitoClient.send(
+        new ConfirmSignUpCommand({
+          ClientId: awsConfig.clientId,
+          Username: credentials.username,
+          ConfirmationCode: credentials.code,
+        })
+      );
 
-  const user: User = {
-    id: session.idToken.payload.sub,
-    email: session.idToken.payload.email,
-    username: result.getUsername(),
-    name: session.idToken.payload.name,
-  };
+      const cognitoUser = getCognitoUser(credentials.username);
+      if (!cognitoUser) throw new Error('Failed to create Cognito user');
 
-  return { user, accessToken: session.accessToken.jwtToken, idToken: session.idToken.jwtToken };
-},
+      return new Promise((resolve, reject) => {
+        cognitoUser.getSession((err: any, session: any) => {
+          if (err) {
+            reject(err);
+          } else if (session && session.isValid()) {
+            const idToken = session.getIdToken();
+            const accessToken = session.getAccessToken();
+            const idTokenPayload = idToken.payload;
 
+            const user: User = {
+              id: idTokenPayload.sub,
+              email: idTokenPayload.email,
+              username: cognitoUser.getUsername(),
+              name: idTokenPayload.name || '',
+            };
 
+            localStorage.setItem('auth_token', accessToken.getJwtToken());
+            localStorage.setItem('id_token', idToken.getJwtToken());
+
+            resolve({
+              user,
+              accessToken: accessToken.getJwtToken(),
+              idToken: idToken.getJwtToken(),
+            });
+          } else {
+            reject(new Error('Failed to get session after confirmation'));
+          }
+        });
+      });
+    } catch (error) {
+      throw error;
+    }
+  },
 
   async signout(): Promise<void> {
-    await Auth.signOut() as any;
+    const cognitoUser = getCurrentCognitoUser();
+    if (cognitoUser) {
+      cognitoUser.signOut();
+    }
     localStorage.removeItem('auth_token');
     localStorage.removeItem('id_token');
   },
 
   async getCurrentUser(): Promise<User | null> {
     try {
-      const AuthAny: any = Auth;
-      const cognitoUser = await AuthAny.currentAuthenticatedUser();
-      const session = cognitoUser.getSignInUserSession();
+      const cognitoUser = getCurrentCognitoUser();
+      if (!cognitoUser) return null;
 
-      return {
-        id: session.idToken.payload.sub,
-        email: session.idToken.payload.email,
-        username: cognitoUser.getUsername(),
-        name: session.idToken.payload.name,
-      };
+      return new Promise((resolve) => {
+        cognitoUser.getSession((err: any, session: any) => {
+          if (err) {
+            resolve(null);
+          } else if (session && session.isValid()) {
+            const idToken = session.getIdToken();
+            const idTokenPayload = idToken.payload;
+
+            resolve({
+              id: idTokenPayload.sub,
+              email: idTokenPayload.email,
+              username: cognitoUser.getUsername(),
+              name: idTokenPayload.name || '',
+            });
+          } else {
+            resolve(null);
+          }
+        });
+      });
     } catch {
       return null;
     }
@@ -111,9 +222,25 @@ export const AuthService = {
 
   async getAccessToken(): Promise<string | null> {
     try {
-      const AuthAny: any = Auth;
-      const session = await AuthAny.currentSession();
-      return session.getAccessToken().getJwtToken();
+      const storedToken = localStorage.getItem('auth_token');
+      if (storedToken) {
+        return storedToken;
+      }
+
+      const cognitoUser = getCurrentCognitoUser();
+      if (!cognitoUser) return null;
+
+      return new Promise((resolve) => {
+        cognitoUser.getSession((err: any, session: any) => {
+          if (err) {
+            resolve(null);
+          } else if (session && session.isValid()) {
+            resolve(session.getAccessToken().getJwtToken());
+          } else {
+            resolve(null);
+          }
+        });
+      });
     } catch {
       return null;
     }
@@ -121,9 +248,25 @@ export const AuthService = {
 
   async getIdToken(): Promise<string | null> {
     try {
-      const AuthAny: any = Auth;
-      const session = await AuthAny.currentSession();
-      return session.getIdToken().getJwtToken();
+      const storedIdToken = localStorage.getItem('id_token');
+      if (storedIdToken) {
+        return storedIdToken;
+      }
+
+      const cognitoUser = getCurrentCognitoUser();
+      if (!cognitoUser) return null;
+
+      return new Promise((resolve) => {
+        cognitoUser.getSession((err: any, session: any) => {
+          if (err) {
+            resolve(null);
+          } else if (session && session.isValid()) {
+            resolve(session.getIdToken().getJwtToken());
+          } else {
+            resolve(null);
+          }
+        });
+      });
     } catch {
       return null;
     }

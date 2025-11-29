@@ -9,7 +9,6 @@ export class CognitoStrategy extends PassportStrategy(Strategy, 'cognito') {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
-      audience: process.env.COGNITO_CLIENT_ID,
       issuer: `https://cognito-idp.${process.env.AWS_REGION}.amazonaws.com/${process.env.COGNITO_USER_POOL_ID}`,
       secretOrKeyProvider: passportJwtSecret({
         cache: true,
@@ -21,10 +20,14 @@ export class CognitoStrategy extends PassportStrategy(Strategy, 'cognito') {
   }
 
   async validate(payload: any) {
+    if (payload.token_use !== 'access') {
+      throw new Error('Invalid token type');
+    }
+
     return {
       id: payload.sub,
-      email: payload.email,
-      username: payload['cognito:username'],
+      email: payload.email || payload.username,
+      username: payload.username,
     };
   }
 }

@@ -1,0 +1,108 @@
+name: Build & Deploy FitTrack
+
+on:
+  push:
+    branches: ["main"]
+
+env:
+  AWS_REGION: us-east-1
+  EB_APP_NAME: fittrack-prod4
+  EB_ENV_NAME: fittrack-prod4-env
+  S3_BUCKET: fittrack-frontend-dev-r6modxd4
+  CLOUDFRONT_DISTRIBUTION_ID: E238AHI7HD5EMF
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      # -------------------------
+      # Checkout repo
+      # -------------------------
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # -------------------------
+      # Setup Node.js
+      # -------------------------
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      # -------------------------
+      # Install backend deps
+      # -------------------------
+      - name: Install backend dependencies
+        run: |
+          npm install --legacy-peer-deps
+        #  cd backend
+        #  npm install --legacy-peer-deps
+        #  cd ..
+
+      # -------------------------
+      # Prisma migration & generation
+      # -------------------------
+      - name: Prisma migrate & generate
+        run: |
+          cd backend
+          npx prisma migrate dev --name init
+          npx prisma generate
+          cd ..
+
+      # -------------------------
+      # Build frontend + backend
+      # -------------------------
+      - name: Build project
+        run: |
+          npm run build
+
+      # -------------------------
+      # Install AWS EBCLI
+      # -------------------------
+      - name: Install EBCLI (Elastic Beanstalk CLI)
+        run: |
+          sudo apt update
+          python3 -m pip install --user awsebcli
+
+      # -------------------------
+      # Configure AWS credentials
+      # -------------------------
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      # -------------------------
+      # Deploy frontend to S3
+      # -------------------------
+      - name: Deploy Frontend to S3
+        run: |
+          cd frontend
+          npm install --legacy-peer-deps
+          export AWS_S3_BUCKET=${{ env.S3_BUCKET }}
+          export AWS_CLOUDFRONT_DISTRIBUTION_ID=${{ env.CLOUDFRONT_DISTRIBUTION_ID }}
+          npm run deploy:s3
+          npm run deploy:invalidate
+          cd ..
+
+
+      # -------------------------
+      # Initialize Elastic Beanstalk app (only once)
+      # -------------------------
+      - name: Initialize Elastic Beanstalk
+        run: |
+          cd backend
+          eb init -p "Node.js 20 running on 64bit Amazon Linux 2023" ${{ env.EB_APP_NAME }} --region ${{ env.AWS_REGION }}
+          cd ..
+
+      # -------------------------
+      # Deploy backend to Beanstalk
+      # -------------------------
+      - name: Deploy Backend to EB
+        run: |
+          cd backend
+          eb deploy ${{ env.EB_ENV_NAME }}
+          cd ..

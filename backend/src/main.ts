@@ -5,12 +5,18 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   // Enable CORS for frontend communication
+  const allowedOrigins = [
+    process.env.FRONTEND_URL || 'http://localhost:3000',
+    process.env.CLOUDFRONT_DOMAIN || '',
+  ].filter(Boolean);
+
   app.enableCors({
-    origin: [
-      process.env.FRONTEND_URL || 'http://localhost:3000',
-      process.env.CLOUDFRONT_DOMAIN || '',
-    ].filter(Boolean),
+    origin: allowedOrigins,
     credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    exposedHeaders: ['Content-Type'],
+    maxAge: 3600,
   });
 
   const port = process.env.PORT || 5000;
